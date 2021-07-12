@@ -1,0 +1,81 @@
+---
+title: "lab9"
+author: "Nina Li"
+date: "May 29, 2019"
+output: html_document
+---
+Observations -- Data
+```{r}
+if (!require("rspatial")) devtools::install_github('rspatial/rspatial')
+```
+```{r}
+library(rspatial)
+library(maptools)
+library(raster)
+library(rpart)
+library(dismo)
+```
+
+```{r}
+bf <- sp_data('bigfoot')
+plot(bf[,1:2], cex=0.5, col='red')
+data(wrld_simpl)
+plot(wrld_simpl, add=TRUE)
+```
+
+Predictors
+```{r}
+wc <- raster::getData('worldclim', res=10, var='bio')
+plot(wc[[c(1, 12)]], nr=2)
+```
+```{r}
+bfc <- extract(wc, bf[,1:2])
+
+# Any missing values?
+i <- which(is.na(bfc[,1]))
+
+plot(bf[,1:2], cex=0.5, col='blue')
+plot(wrld_simpl, add=TRUE)
+points(bf[i, ], pch=20, cex=3, col='red')
+```
+
+```{r}
+plot(bfc[ ,'bio1'] / 10, bfc[, 'bio12'], xlab='Annual mean temperature (C)',
+         ylab='Annual precipitation (mm)')
+```
+
+Background data
+```{r}
+# extent of all points
+e <- extent(SpatialPoints(bf[, 1:2]))
+
+# 5000 random samples (excluding NA cells) from extent e
+set.seed(0)
+bg <- sampleRandom(wc, 5000, ext=e)
+
+#combine presence and background data
+d <- rbind(cbind(pa=1, bfc), cbind(pa=0, bg))
+d <- data.frame(d)
+
+#split the data into east and west
+de <- d[bf[,1] > -102, ]
+dw <- d[bf[,1] <= -102, ]
+
+#fit the model
+cart <- rpart(pa~., data=dw)
+plotcp(cart)
+```
+
+Question 1: Describe the conditions under which you have the highest probability of finding our beloved species?
+There are 2.
+One is when bio4<8679, and bio10<218.5 and bio15>=40.5, and bio8<88.5.
+The other is when bio4<8679, and bio10<218.5, and bio15<40.5, and bio14<44.5, and bio5<280.5, bio3<33.5, bio6>=124.5
+```{r}
+plot(cart, uniform=TRUE)
+# text(cart, use.n=TRUE, all=TRUE, cex=.8)
+text(cart, cex=.7, digits=1)
+```
+
+
+
+
