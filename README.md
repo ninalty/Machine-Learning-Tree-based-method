@@ -1,11 +1,5 @@
 # Machine-Learning-Tree-based-method
 This project practices tree-based methods on predicting the presence/absence of 'bigfoot' with climate data
----
-title: "Tree-based method"
-author: "Nina Li"
-date: "May 29, 2019"
-output: html_document
----
 
 This exercise applied CART and Random Forest to predict the presence of 'big foot" in area with known climate.
 
